@@ -1,0 +1,62 @@
+[tool.poetry]
+name = "django-nitro-mailer"
+version = "0.1.0"
+description = "Django mails. Supercharged."
+authors = ["Kamil Marut <kamil@kamilmarut.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^4.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.4.4"
+black = "^24.4.2"
+pytest = "^8.2.0"
+pytest-django = "^4.8.0"
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+
+[tool.ruff]
+select = [
+    "E", 
+    "F", 
+    "C90", 
+    "N", 
+    "I",
+    "ICN",
+    "UP", 
+    "ANN", 
+    "YTT", 
+    "ASYNC", 
+    "B", 
+    "S", 
+    "A", 
+    "C4", 
+    "DJ", 
+    "DTZ", 
+    "G", 
+    "PIE", 
+    "T20", 
+    "RSE", 
+    "SIM", 
+    "PTH", 
+    "PD", 
+    "TRY", 
+    "RUF",
+    "PIE",
+    "INT",
+    "TCH",
+    "PERF",
+    "FURB",
+]
+ignore = ["ANN401", "TRY003"]
+line-length = 120
+target-version = "py311"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
