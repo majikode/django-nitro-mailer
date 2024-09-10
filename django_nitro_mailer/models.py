@@ -12,6 +12,7 @@ class EmailDataMixin(models.Model):
 
     class Meta:
         abstract = True
+        app_label = 'django_nitro_mailer'
 
     def set_email(self: Self, email: EmailMessage) -> None:
         self.email_data = pickle.dumps(email)

@@ -24,6 +24,7 @@ DEFAULT_SETTINGS = {
         }
     },
     "ROOT_URLCONF": "urls",
+    "EMAIL_BACKEND_TYPE": "smtp",
     "MIDDLEWARE": [
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.contrib.auth.middleware.AuthenticationMiddleware",
