@@ -9,7 +9,10 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 django = "^4.2"
-requests = "^2.31.0"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "dev_settings"
+python_files = ["tests.py", "test_*.py","*_tests.py"]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.4"

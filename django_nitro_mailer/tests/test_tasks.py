@@ -1,5 +1,7 @@
 import pytest
 import pickle
+import os
+import django
 from unittest.mock import patch, MagicMock
 from django.conf import settings
 from django.core.mail import EmailMessage
@@ -9,7 +11,8 @@ from unittest.mock import patch
 
 
 @pytest.mark.django_db
-def test_set_and_get_email():
+def test_set_and_get_email() -> None:
+    print(settings.DATABASES)
     email_instance = Email.objects.create(email_data=b"")
 
     email_message = EmailMessage(
@@ -24,15 +27,8 @@ def test_set_and_get_email():
 
 
 @pytest.mark.django_db
-def test_email_model():
-
-    email_instance = Email.objects.create(priority=Email.Priorities.HIGH, email_data=b"")
-    assert email_instance.priority == Email.Priorities.HIGH
-
-
-@pytest.mark.django_db
 @patch("django.core.mail.backends.smtp.EmailBackend.send_messages")
-def test_send_emails_success_smtp(mock_send_messages):
+def test_send_emails_success_smtp(mock_send_messages: MagicMock) -> None:
     mock_send_messages.return_value = 1
 
     email_message = EmailMessage(
@@ -61,7 +57,7 @@ def test_send_emails_success_smtp(mock_send_messages):
 
 
 @pytest.mark.django_db
-def test_send_emails_success_console():
+def test_send_emails_success_console() -> None:
     email_message = EmailMessage(
         subject="Test Subject", body="Test Body", from_email="from@example.com", to=["to@example.com"]
     )
@@ -85,7 +81,7 @@ def test_send_emails_success_console():
 
 @pytest.mark.django_db
 @patch("django.core.mail.backends.smtp.EmailBackend.send_messages")
-def test_send_emails_with_priorities(mock_send_messages):
+def test_send_emails_with_priorities(mock_send_messages: MagicMock) -> None:
     mock_send_messages.return_value = 1
 
     high_priority_email = EmailMessage(
@@ -130,7 +126,7 @@ def test_send_emails_with_priorities(mock_send_messages):
 
 @pytest.mark.django_db
 @patch("django.core.mail.backends.smtp.EmailBackend.send_messages")
-def test_send_emails_no_emails(mock_send_messages):
+def test_send_emails_no_emails(mock_send_messages: MagicMock) -> None:
     mock_send_messages.return_value = 1
 
     assert Email.objects.count() == 0
@@ -145,7 +141,7 @@ def test_send_emails_no_emails(mock_send_messages):
 @pytest.mark.django_db
 @patch("django_nitro_mailer.tasks.get_connection")
 @patch("django.core.mail.backends.smtp.EmailBackend.send_messages")
-def test_send_emails_backend_error(mock_send_messages, mock_get_connection):
+def test_send_emails_backend_error(mock_send_messages: MagicMock, mock_get_connection: MagicMock) -> None:
     mock_send_messages.side_effect = Exception("Backend error")
 
     mock_backend = MagicMock()

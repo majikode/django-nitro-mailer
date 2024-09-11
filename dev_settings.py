@@ -3,7 +3,8 @@ SECRET_KEY = "open-secret"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "test_nitro_mailer.db",
+        "NAME": "nitro_mailer.db",
+        "TEST": {"NAME": ":memory:"},
     }
 }
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -17,7 +18,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_nitro_mailer",
 ]
-ROOT_URLCONF = ("urls",)
+ROOT_URLCONF = "urls"
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
