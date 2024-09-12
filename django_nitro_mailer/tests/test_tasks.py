@@ -71,32 +71,52 @@ def test_send_emails_success_smtp() -> None:
 
 
 @pytest.mark.django_db
-def test_send_emails_with_priorities() -> None:
-    settings.EMAIL_BACKEND = "django_nitro_mailer.backend.DatabaseBackend"
-    settings.NITRO_MAILER_EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+@patch("django.core.mail.backends.smtp.EmailBackend.send_messages")
+def test_send_emails_with_priorities(mock_send_messages):
+    mock_send_messages.return_value = 1
 
-    high_priority_email = ("High Priority", "Test Body", "from@example.com", ["to@example.com"])
-    medium_priority_email = ("Medium Priority", "Test Body", "from@example.com", ["to@example.com"])
-    low_priority_email = ("Low Priority", "Test Body", "from@example.com", ["to@example.com"])
-    medium_priority_email_2 = ("Medium Priority", "Test Body", "from@example.com", ["to@example.com"])
-    low_priority_email_2 = ("Low Priority", "Test Body", "from@example.com", ["to@example.com"])
-
-    send_mass_mail(
-        (high_priority_email, medium_priority_email, low_priority_email, medium_priority_email_2, low_priority_email_2),
-        fail_silently=False,
+    high_priority_email = EmailMessage(
+        subject="High Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+    )
+    medium_priority_email = EmailMessage(
+        subject="Medium Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+    )
+    low_priority_email = EmailMessage(
+        subject="Low Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+    )
+    medium_priority_email_2 = EmailMessage(
+        subject="Medium Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+    )
+    low_priority_email_2 = EmailMessage(
+        subject="Low Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+    )
+    deferred_priority_email = EmailMessage(
+        subject="Deferred Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
     )
 
-    assert Email.objects.count() == 5
+    Email.objects.create(email_data=pickle.dumps(high_priority_email), priority=Email.Priorities.HIGH)
+    Email.objects.create(email_data=pickle.dumps(medium_priority_email), priority=Email.Priorities.MEDIUM)
+    Email.objects.create(email_data=pickle.dumps(low_priority_email), priority=Email.Priorities.LOW)
+    Email.objects.create(email_data=pickle.dumps(medium_priority_email_2), priority=Email.Priorities.MEDIUM)
+    Email.objects.create(email_data=pickle.dumps(low_priority_email_2), priority=Email.Priorities.LOW)
+    Email.objects.create(email_data=pickle.dumps(deferred_priority_email), priority=Email.Priorities.DEFERRED)
+
+    assert Email.objects.count() == 6
     assert EmailLog.objects.count() == 0
+
+    settings.EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
     send_emails()
 
+    assert Email.objects.count() == 1
     assert EmailLog.objects.count() == 5
 
     sent_emails = [log.email for log in EmailLog.objects.all().order_by("id")]
-
     assert sent_emails[0].subject == "High Priority"
     assert sent_emails[1].subject == "Medium Priority"
+    assert sent_emails[3].subject == "Low Priority"
+
+    assert mock_send_messages.call_count == 5
 
 
 @pytest.mark.django_db
