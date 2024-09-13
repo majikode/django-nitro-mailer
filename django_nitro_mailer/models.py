@@ -68,6 +68,7 @@ class EmailLog(EmailDataMixin, models.Model):
         FAILURE = 1, _("Failure")
 
     result = models.PositiveSmallIntegerField(choices=Results.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self: Self) -> str:
         return f"{self.result}: {self.subject} [{self.created_at}]"
