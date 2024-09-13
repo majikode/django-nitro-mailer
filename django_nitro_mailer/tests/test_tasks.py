@@ -72,7 +72,7 @@ def test_send_emails_success_smtp() -> None:
 
 @pytest.mark.django_db
 @patch("django.core.mail.backends.smtp.EmailBackend.send_messages")
-def test_send_emails_with_priorities(mock_send_messages):
+def test_send_emails_with_priorities(mock_send_messages: MagicMock):
     mock_send_messages.return_value = 1
 
     high_priority_email = EmailMessage(
