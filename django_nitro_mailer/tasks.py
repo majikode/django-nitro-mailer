@@ -21,8 +21,12 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
                 if email_message:
                     connection.send_messages([email_message])
 
-                    EmailLog.objects.create(email_data=email_obj.email_data, result=EmailLog.Results.SUCCESS)
+                    email_log = EmailLog.objects.create(
+                        email_data=email_obj.email_data, result=EmailLog.Results.SUCCESS
+                    )
+                    logger.info(str(email_log))
                     email_obj.delete()
+
                 else:
                     logger.error("Failed to retrieve email")
 
