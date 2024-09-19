@@ -41,6 +41,9 @@ def send_email_message(email_data: EmailMessage, connection: BaseEmailBackend) -
     return False
 
 
+EMAIL_SEND_THROTTLE_MS = int(os.getenv("EMAIL_SEND_THROTTLE_MS", "1000"))
+
+
 def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
     if queryset is None:
         queryset = Email.objects.exclude(priority=Email.Priorities.DEFERRED).order_by("-priority", "created_at")
