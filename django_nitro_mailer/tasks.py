@@ -3,7 +3,6 @@ import os
 import time
 import pickle
 from django.utils import timezone
-from typing import Optional
 from django.db import transaction, models
 from django.core.mail import get_connection
 from typing import Optional
@@ -14,6 +13,8 @@ from django_nitro_mailer.models import Email, EmailLog
 
 logger = logging.getLogger(__name__)
 email_db_logging = os.getenv("EMAIL_DB_LOGGING_ENABLED", "true").lower() == "true"
+
+EMAIL_SEND_THROTTLE_MS = int(os.getenv("EMAIL_SEND_THROTTLE_MS", "1000"))
 
 
 def throttle_email_delivery() -> None:
