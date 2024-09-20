@@ -14,8 +14,6 @@ from django_nitro_mailer.models import Email, EmailLog
 logger = logging.getLogger(__name__)
 email_db_logging = os.getenv("EMAIL_DB_LOGGING_ENABLED", "true").lower() == "true"
 
-EMAIL_SEND_THROTTLE_MS = int(os.getenv("EMAIL_SEND_THROTTLE_MS", "1000"))
-
 
 def throttle_email_delivery() -> None:
     throttle_delay = int(os.getenv("EMAIL_SEND_THROTTLE_MS", "0"))
