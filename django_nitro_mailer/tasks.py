@@ -1,11 +1,13 @@
+import os
 import logging
-import pickle
+import timezone
 from django.db import transaction, models
-from django.core.mail import get_connection, send_mass_mail
+from django.core.mail import get_connection
 from typing import Optional
 from django_nitro_mailer.models import Email, EmailLog
 
 logger = logging.getLogger(__name__)
+email_logging_enabled = os.getenv("EMAIL_LOGGING_ENABLED", "false").lower() == "true"
 
 
 def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
@@ -21,10 +23,12 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
                 if email_message:
                     connection.send_messages([email_message])
 
-                    email_log = EmailLog.objects.create(
-                        email_data=email_obj.email_data, result=EmailLog.Results.SUCCESS
-                    )
-                    logger.info(str(email_log))
+                    EmailLog.objects.create(email_data=email_obj.email_data, result=EmailLog.Results.SUCCESS)
+                    if email_logging_enabled:
+                        logger.info(
+                            "Email sent successfully",
+                            extra={"recipients": email_obj.recipients, "created_at": timezone.now()},
+                        )
                     email_obj.delete()
 
                 else:
