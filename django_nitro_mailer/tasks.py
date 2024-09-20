@@ -44,6 +44,12 @@ def send_email_message(email_data: EmailMessage, connection: BaseEmailBackend) -
 EMAIL_SEND_THROTTLE_MS = int(os.getenv("EMAIL_SEND_THROTTLE_MS", "1000"))
 
 
+def throttle_email_delivery(throttle_delay: int) -> None:
+    if throttle_delay > 0:
+        logger.debug(f"Throttling email delivery. Sleeping for {throttle_delay} milliseconds")
+        time.sleep(throttle_delay / 1000)
+
+
 def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
     if queryset is None:
         queryset = Email.objects.exclude(priority=Email.Priorities.DEFERRED).order_by("-priority", "created_at")
