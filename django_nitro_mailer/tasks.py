@@ -27,14 +27,13 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
         queryset = Email.objects.exclude(priority=Email.Priorities.DEFERRED).order_by("-priority", "created_at")
 
     connection = get_connection()
-    throttle_delay = EMAIL_SEND_THROTTLE_MS / 1000.0 if EMAIL_SEND_THROTTLE_MS > 0 else 0
 
     with transaction.atomic():
         for email_obj in queryset.select_for_update(nowait=True):
             try:
                 email_message = email_obj.email
                 if email_message:
-                    time.sleep(throttle_delay)
+                    throttle_email_delivery(EMAIL_SEND_THROTTLE_MS)
                     connection.send_messages([email_message])
 
                     if email_db_logging:
