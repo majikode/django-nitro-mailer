@@ -22,9 +22,8 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
                 email_message = email_obj.email
                 if email_message:
                     connection.send_messages([email_message])
-
-                    EmailLog.objects.create(email_data=email_obj.email_data, result=EmailLog.Results.SUCCESS)
                     if email_logging_enabled:
+                        EmailLog.objects.create(email_data=email_obj.email_data, result=EmailLog.Results.SUCCESS)
                         logger.info(
                             "Email sent successfully",
                             extra={"recipients": email_obj.recipients, "created_at": timezone.now()},
