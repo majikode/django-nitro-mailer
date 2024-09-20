@@ -8,10 +8,9 @@ from django_nitro_mailer.models import Email, EmailLog
 
 logger = logging.getLogger(__name__)
 
-EMAIL_SEND_THROTTLE_MS = int(os.getenv("EMAIL_SEND_THROTTLE_MS", "1000"))
 
-
-def throttle_email_delivery(throttle_delay: int) -> None:
+def throttle_email_delivery() -> None:
+    throttle_delay = int(os.getenv("EMAIL_SEND_THROTTLE_MS", "0"))
     if throttle_delay > 0:
         logger.debug(f"Throttling email delivery. Sleeping for {throttle_delay} milliseconds")
         time.sleep(throttle_delay / 1000)
@@ -28,7 +27,7 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
             try:
                 email_message = email_obj.email
                 if email_message:
-                    throttle_email_delivery(EMAIL_SEND_THROTTLE_MS)
+                    throttle_email_delivery()
                     connection.send_messages([email_message])
 
                     EmailLog.objects.create(email_data=email_obj.email_data, result=EmailLog.Results.SUCCESS)
