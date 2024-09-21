@@ -7,7 +7,7 @@ from typing import Optional
 from django_nitro_mailer.models import Email, EmailLog
 
 logger = logging.getLogger(__name__)
-email_logging_enabled = os.getenv("EMAIL_LOGGING_ENABLED", "false").lower() == "true"
+email_logging_enabled = os.getenv("EMAIL_LOGGING_ENABLED", "true").lower() == "true"
 
 
 def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
@@ -26,6 +26,11 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
                         EmailLog.objects.create(email_data=email_obj.email_data, result=EmailLog.Results.SUCCESS)
                         logger.info(
                             "Email sent successfully",
+                            extra={"recipients": email_obj.recipients, "created_at": timezone.now()},
+                        )
+                    else:
+                        logger.info(
+                            "Email sent successfully (logging only)",
                             extra={"recipients": email_obj.recipients, "created_at": timezone.now()},
                         )
                     email_obj.delete()
