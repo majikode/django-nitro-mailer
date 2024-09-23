@@ -11,7 +11,10 @@ from django_nitro_mailer.tasks import send_emails
 
 @admin.register(Email)
 class EmailAdmin(admin.ModelAdmin):
+    change_form_template = "admin/email_change_form.html"
+
     form = EmailAdminForm
+    list_display = ("subject", "recipients", "created_at", "priority")
 
     def get_urls(self):
         urls = super().get_urls()
@@ -32,9 +35,3 @@ class EmailAdmin(admin.ModelAdmin):
         except Exception as e:
             messages.error(request, f"Error while sending email: {e}")
         return redirect(request.META.get("HTTP_REFERER", "admin:index"))
-
-    def email_action_button(self, obj):
-        url = reverse("admin:send_email", args=[obj.pk])
-        return format_html('<a class="button" href="{}">Send email</a>', url)
-
-    list_display = ("subject", "recipients", "created_at", "priority", "email_action_button")
