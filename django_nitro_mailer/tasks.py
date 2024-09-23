@@ -41,7 +41,6 @@ def send_email_message(email_data: EmailMessage, connection: BaseEmailBackend) -
     return False
 
 
-
 def throttle_email_delivery() -> None:
     throttle_delay = int(os.getenv("EMAIL_SEND_THROTTLE_MS", "0"))
     if throttle_delay > 0:
