@@ -3,6 +3,7 @@ import os
 import time
 import pickle
 from django.utils import timezone
+from typing import Optional
 from django.db import transaction, models
 from django.core.mail import get_connection
 from typing import Optional
