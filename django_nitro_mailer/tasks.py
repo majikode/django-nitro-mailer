@@ -45,9 +45,11 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
 
                 else:
                     logger.error("Failed to retrieve email")
-                throttle_email_delivery()
+
             except Exception as e:
                 if email_db_logging:
                     EmailLog.objects.create(email_data=email_obj.email_data, result=EmailLog.Results.FAILURE)
 
                 logger.error("Failed to send email", exc_info=e)
+
+            throttle_email_delivery()
