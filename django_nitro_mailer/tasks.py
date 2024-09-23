@@ -1,8 +1,9 @@
 import logging
 import os
-from typing import Optional
-
+import time
 import timezone
+from typing import Optional
+from django.db import transaction, models
 from django.core.mail import get_connection
 from django.db import models, transaction
 
@@ -10,6 +11,13 @@ from django_nitro_mailer.models import Email, EmailLog
 
 logger = logging.getLogger(__name__)
 email_db_logging = os.getenv("EMAIL_DB_LOGGING_ENABLED", "true").lower() == "true"
+
+
+def throttle_email_delivery() -> None:
+    throttle_delay = int(os.getenv("EMAIL_SEND_THROTTLE_MS", "0"))
+    if throttle_delay > 0:
+        logger.debug(f"Throttling email delivery. Sleeping for {throttle_delay} milliseconds")
+        time.sleep(throttle_delay / 1000)
 
 
 def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
@@ -43,3 +51,5 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
                     EmailLog.objects.create(email_data=email_obj.email_data, result=EmailLog.Results.FAILURE)
 
                 logger.error("Failed to send email", exc_info=e)
+
+            throttle_email_delivery()
