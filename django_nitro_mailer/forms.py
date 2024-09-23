@@ -16,6 +16,7 @@ class EmailAdminForm(forms.ModelForm):
     context = forms.JSONField(
         required=False, initial={}, help_text=gettext_lazy("JSON context for rendering the email content.")
     )
+    send_email = forms.BooleanField(required=False, initial=False, widget=forms.HiddenInput())
 
     def __init__(self: Self, *args: Any, **kwargs: Any) -> None:
         if instance := kwargs.get("instance", None):
