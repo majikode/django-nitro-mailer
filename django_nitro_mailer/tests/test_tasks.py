@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.mail import EmailMessage, send_mail, send_mass_mail
 from django_nitro_mailer.tasks import send_emails
 from django_nitro_mailer.models import Email, EmailLog
-from django_nitro_mailer.backend import DatabaseBackend
+from django_nitro_mailer.backend import SyncBackend
 
 
 @pytest.mark.django_db
@@ -185,3 +185,46 @@ def test_send_mass_email_success(mock_send_mass_mail: MagicMock, mock_get_connec
     email_logs = EmailLog.objects.all()
     for email_log in email_logs:
         assert email_log.result == EmailLog.Results.SUCCESS
+
+
+@pytest.mark.django_db
+@patch("smtplib.SMTP")
+def test_sync_backend_sends_email(mock_send_messages: MagicMock) -> None:
+    settings.EMAIL_BACKEND = "django_nitro_mailer.backend.SyncBackend"
+    settings.NITRO_MAILER_EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+    backend = SyncBackend()
+    email_message = EmailMessage(
+        subject="Test Subject",
+        body="This is a test message.",
+        from_email="from@example.com",
+        to=["to@example.com"],
+    )
+    print(email_message)
+
+    mock_send_messages.return_value.sendmail.return_value = None
+    sent_count = backend.send_messages([email_message])
+
+    assert sent_count == 1
+
+
+@pytest.mark.django_db
+@patch("smtplib.SMTP")
+def test_sync_backend_sends_email_failure(mock_smtp: MagicMock) -> None:
+    settings.EMAIL_BACKEND = "django_nitro_mailer.backend.SyncBackend"
+    settings.NITRO_MAILER_EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+    backend = SyncBackend()
+    email_message = EmailMessage(
+        subject="Test Subject",
+        body="This is a test message.",
+        from_email="from@example.com",
+        to=["to@example.com"],
+    )
+
+    mock_smtp.return_value.sendmail.side_effect = Exception("Failed to send email")
+
+    sent_count = backend.send_messages([email_message])
+
+    assert sent_count == 0
+    mock_smtp.return_value.sendmail.assert_called_once()
