@@ -27,14 +27,12 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
             try:
                 email_message = email_obj.email
                 if email_message:
-                    throttle_email_delivery()
                     connection.send_messages([email_message])
-
                     EmailLog.objects.create(email_data=email_obj.email_data, result=EmailLog.Results.SUCCESS)
                     email_obj.delete()
                 else:
                     logger.error("Failed to retrieve email")
-
+                throttle_email_delivery()
             except Exception as e:
                 EmailLog.objects.create(email_data=email_obj.email_data, result=EmailLog.Results.FAILURE)
                 logger.error("Failed to send email", exc_info=e)
