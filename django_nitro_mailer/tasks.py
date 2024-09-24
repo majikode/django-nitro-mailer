@@ -1,12 +1,13 @@
 import logging
 import os
 import time
+import pickle
 from django.utils import timezone
 from django.db import transaction, models
 from django.core.mail import get_connection
 from typing import Optional
 from django.db import models, transaction
-
+from django.core.mail import EmailMessage
 from django_nitro_mailer.models import Email, EmailLog
 
 logger = logging.getLogger(__name__)
@@ -20,32 +21,26 @@ def throttle_email_delivery() -> None:
         time.sleep(throttle_delay / 1000)
 
 
-def send_email_message(email_obj: Email, connection) -> bool:
+def send_email_message(email_data: EmailMessage, connection) -> bool:
     try:
-        email_message = email_obj.email
-        if email_message:
-            connection.send_messages([email_message])
+        if email_data:
+            connection.send_messages([email_data])
 
             if email_db_logging:
-                EmailLog.objects.create(email_data=email_obj.email_data, result=EmailLog.Results.SUCCESS)
+                EmailLog.objects.create(email_data=pickle.dumps(email_data), result=EmailLog.Results.SUCCESS)
 
             logger.info(
                 "Email sent successfully",
-                extra={"recipients": email_obj.recipients, "created_at": timezone.now()},
+                extra={"recipients": email_data.recipients, "created_at": timezone.now()},
             )
-
-            email_obj.delete()
-
             return True
         else:
             logger.error("Failed to retrieve email")
-            return False
     except Exception as e:
         if email_db_logging:
-            EmailLog.objects.create(email_data=email_obj.email_data, result=EmailLog.Results.FAILURE)
-
+            EmailLog.objects.create(email_data=pickle.dumps(email_data), result=EmailLog.Results.FAILURE)
         logger.error("Failed to send email", exc_info=e)
-        return False
+    return False
 
 
 def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
@@ -53,8 +48,9 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
         queryset = Email.objects.exclude(priority=Email.Priorities.DEFERRED).order_by("-priority", "created_at")
 
     connection = get_connection()
-
     with transaction.atomic():
         for email_obj in queryset.select_for_update(nowait=True):
-            send_email_message(email_obj, connection)
+            email_message = pickle.loads(email_obj.email_data)
+            send_email_message(email_message, connection)
+            email_obj.delete()
             throttle_email_delivery()

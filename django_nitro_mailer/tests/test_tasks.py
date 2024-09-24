@@ -153,7 +153,7 @@ def test_send_emails_backend_error(mock_send_messages: MagicMock, mock_get_conne
 
     send_emails()
 
-    assert Email.objects.count() == 1
+    assert Email.objects.count() == 0
     assert EmailLog.objects.count() == 1
     email_log = EmailLog.objects.first()
     assert email_log.result == EmailLog.Results.FAILURE
@@ -200,12 +200,12 @@ def test_sync_backend_sends_email(mock_send_messages: MagicMock) -> None:
         from_email="from@example.com",
         to=["to@example.com"],
     )
-    print(email_message)
-
     mock_send_messages.return_value.sendmail.return_value = None
     sent_count = backend.send_messages([email_message])
 
     assert sent_count == 1
+    assert EmailLog.objects.count() == 1
+    mock_send_messages.assert_called_once()
 
 
 @pytest.mark.django_db
@@ -227,4 +227,5 @@ def test_sync_backend_sends_email_failure(mock_smtp: MagicMock) -> None:
     sent_count = backend.send_messages([email_message])
 
     assert sent_count == 0
+    assert EmailLog.objects.count() == 1
     mock_smtp.return_value.sendmail.assert_called_once()

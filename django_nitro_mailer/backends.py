@@ -8,7 +8,7 @@ from django.conf import settings
 
 
 from django_nitro_mailer.models import Email, EmailLog
-from django_nitro_mailer.tasks import throttle_email_delivery
+from django_nitro_mailer.tasks import throttle_email_delivery, send_email_message
 
 logger = logging.getLogger(__name__)
 email_db_logging = os.getenv("EMAIL_DB_LOGGING_ENABLED", "true").lower() == "true"
@@ -35,22 +35,8 @@ class SyncBackend(BaseEmailBackend):
         successful_sends = 0
         connection = self.get_connection()
         for email_message in email_messages:
-            try:
-                connection.send_messages([email_message])
-                if email_db_logging:
-                    EmailLog.objects.create(
-                        email_data=email_message.message().as_bytes(), result=EmailLog.Results.SUCCESS
-                    )
-                logger.info(
-                    "Email sent successfully", extra={"recipients": email_message.to, "subject": email_message.subject}
-                )
+            if send_email_message(email_message, connection):
                 successful_sends += 1
-            except Exception as e:
-                if email_db_logging:
-                    EmailLog.objects.create(
-                        email_data=email_message.message().as_bytes(), result=EmailLog.Results.FAILURE
-                    )
-                logger.error(f"Failed to send email: {e}", exc_info=True)
             throttle_email_delivery()
 
         return successful_sends
