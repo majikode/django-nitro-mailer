@@ -67,3 +67,14 @@ To send emails using the `DatabaseBackend`, you can use the `send_mail` function
     )
 
 With this setup, the SyncBackend will manage the synchronous sending of your emails, confirming whether each email was successfully delivered or if there were any issues.
+
+
+### Using the Management Command for Sending Emails
+
+Once you've configured the `DatabaseBackend` or `SyncBackend` and sent your emails using the `send_mail` function, you can also use a custom management command to process and send all queued emails stored in the database.
+
+#### Sending Queued Emails
+
+To send the queued emails, run the following command from your terminal:
+
+    python manage.py send_emails
