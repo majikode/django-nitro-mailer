@@ -1,6 +1,6 @@
 # Installation Guide
 
-This document will guide you through the installation process of the **django-nitro-mailer** application.
+This document will guide you through the installation process of the **django-nitro-mailer** .
 
 ## 1. Requirements
 
@@ -16,13 +16,7 @@ If you use `poetry` or `pip`, ensure that you have an isolated environment set u
 
 To install the package, use the following steps:
 
-### a. Using `pip`
-
-If the package is available via PyPI, you can install it with `pip`:
-
-    pip install django-nitro-mailer
-
-### b. Using poetry
+### Using poetry
 If you're managing dependencies with poetry, you can add it to your pyproject.toml file like this:
 
     poetry add django-nitro-mailer
@@ -41,6 +35,7 @@ Once installed, add the application to your Django project's INSTALLED_APPS in s
 Run the migrations to create the necessary database tables for email logging:
 
     python manage.py migrate
+    
 This will ensure that the Email and EmailLog models are created in your database.
 
 
