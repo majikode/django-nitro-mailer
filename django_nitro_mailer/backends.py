@@ -27,7 +27,7 @@ class DatabaseBackend(BaseEmailBackend):
 
 
 class SyncBackend(BaseEmailBackend):
-    def get_connection(self, fail_silently=False):
+    def get_connection(self, fail_silently: bool = False) -> int:
         backend_path = settings.NITRO_MAILER_EMAIL_BACKEND
         return django_get_connection(backend_path, fail_silently=fail_silently)
 
