@@ -7,7 +7,8 @@ from django.db import transaction, models
 from django.core.mail import get_connection
 from typing import Optional
 from django.db import models, transaction
-from django.core.mail import EmailMessage
+from django.core.mail.backends.base import BaseEmailBackend
+from django.core.mail.message import EmailMessage
 from django_nitro_mailer.models import Email, EmailLog
 
 logger = logging.getLogger(__name__)
@@ -21,21 +22,18 @@ def throttle_email_delivery() -> None:
         time.sleep(throttle_delay / 1000)
 
 
-def send_email_message(email_data: EmailMessage, connection) -> bool:
+def send_email_message(email_data: EmailMessage, connection: BaseEmailBackend) -> bool:
     try:
-        if email_data:
-            connection.send_messages([email_data])
+        connection.send_messages([email_data])
 
-            if email_db_logging:
-                EmailLog.objects.create(email_data=pickle.dumps(email_data), result=EmailLog.Results.SUCCESS)
+        if email_db_logging:
+            EmailLog.objects.create(email_data=pickle.dumps(email_data), result=EmailLog.Results.SUCCESS)
 
-            logger.info(
-                "Email sent successfully",
-                extra={"recipients": email_data.recipients, "created_at": timezone.now()},
-            )
-            return True
-        else:
-            logger.error("Failed to retrieve email")
+        logger.info(
+            "Email sent successfully",
+            extra={"recipients": email_data.recipients, "created_at": timezone.now()},
+        )
+        return True
     except Exception as e:
         if email_db_logging:
             EmailLog.objects.create(email_data=pickle.dumps(email_data), result=EmailLog.Results.FAILURE)
@@ -50,7 +48,12 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
     connection = get_connection()
     with transaction.atomic():
         for email_obj in queryset.select_for_update(nowait=True):
-            email_message = pickle.loads(email_obj.email_data)
-            send_email_message(email_message, connection)
-            email_obj.delete()
-            throttle_email_delivery()
+            try:
+                email_message = email_obj.email
+                if email_obj.email:
+                    send_email_message(email_message, connection)
+                    email_obj.delete()
+                    throttle_email_delivery()
+
+            except Exception as e:
+                logger.error(f"Failed to send or delete email {email_obj.id}: {e}")
