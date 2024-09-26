@@ -18,7 +18,7 @@ email_db_logging = os.getenv("EMAIL_DB_LOGGING_ENABLED", "true").lower() == "tru
 def throttle_email_delivery() -> None:
     throttle_delay = int(os.getenv("EMAIL_SEND_THROTTLE_MS", "0"))
     if throttle_delay > 0:
-        logger.debug(f"Throttling email delivery. Sleeping for {throttle_delay} milliseconds")
+        logger.debug("Throttling email delivery. Sleeping for %d milliseconds", throttle_delay)
         time.sleep(throttle_delay / 1000)
 
 
@@ -54,6 +54,10 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
                     send_email_message(email_message, connection)
                     email_obj.delete()
                     throttle_email_delivery()
+                else:
+                    logger.error("No email message found for Email object: %s", email_obj.id, exc_info=True)
 
             except Exception as e:
-                logger.error(f"Failed to send or delete email {email_obj.id}: {e}")
+                logger.error(
+                    "Failed to send or delete email %s", email_obj.id, extra={"email_id": email_obj.id}, exc_info=True
+                )
