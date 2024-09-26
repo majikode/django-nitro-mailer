@@ -65,3 +65,9 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
                     extra={"email_id": email_obj.id},
                     exc_info=True,
                 )
+
+
+def retry_deferred() -> None:
+    deferred_emails = Email.objects.filter(priority=Email.Priorities.DEFERRED)
+    if deferred_emails.exists():
+        send_emails(deferred_emails)
