@@ -1,13 +1,34 @@
 import pytest
 import pickle
 from unittest.mock import patch, MagicMock
-from django.conf import settings
-from django.test import override_settings
+from django.conf import Settings
 from django.core.mail import EmailMessage, send_mail, send_mass_mail
 from django_nitro_mailer.backends import BaseEmailBackend
 from django_nitro_mailer.tasks import send_emails
 from django_nitro_mailer.models import Email, EmailLog
-from django_nitro_mailer.backends import SyncBackend
+
+
+@pytest.fixture
+def sync_smtp_backend_settings(settings: Settings) -> None:
+    settings.EMAIL_BACKEND = "django_nitro_mailer.backends.SyncBackend"
+    settings.NITRO_MAILER_EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+
+@pytest.fixture
+def database_console_backend_settings(settings: Settings) -> None:
+    settings.EMAIL_BACKEND = "django_nitro_mailer.backends.DatabaseBackend"
+    settings.NITRO_MAILER_EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
+@pytest.fixture
+def database_smtp_backend_settings(settings: Settings) -> None:
+    settings.EMAIL_BACKEND = "django_nitro_mailer.backends.DatabaseBackend"
+    settings.NITRO_MAILER_EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+
+@pytest.fixture
+def smtp_backend_settings(settings: Settings) -> None:
+    settings.NITRO_MAILER_EMAIL_BACKEND = ("django.core.mail.backends.smtp.EmailBackend",)
 
 
 @pytest.mark.django_db
@@ -26,11 +47,7 @@ def test_set_and_get_email() -> None:
 
 
 @pytest.mark.django_db
-@override_settings(
-    EMAIL_BACKEND="django_nitro_mailer.backends.DatabaseBackend",
-    NITRO_MAILER_EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend",
-)
-def test_send_emails_success_console() -> None:
+def test_send_emails_success_console(database_console_backend_settings: None) -> None:
 
     send_mail(
         subject="Test Subject",
@@ -52,11 +69,7 @@ def test_send_emails_success_console() -> None:
 
 
 @pytest.mark.django_db
-@override_settings(
-    EMAIL_BACKEND="django_nitro_mailer.backends.DatabaseBackend",
-    NITRO_MAILER_EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
-)
-def test_send_emails_success_smtp() -> None:
+def test_send_emails_success_smtp(database_smtp_backend_settings: None) -> None:
     send_mail(
         subject="Test Subject",
         message="Test Body",
@@ -78,10 +91,7 @@ def test_send_emails_success_smtp() -> None:
 
 @pytest.mark.django_db
 @patch("django.core.mail.backends.smtp.EmailBackend.send_messages")
-@override_settings(
-    NITRO_MAILER_EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
-)
-def test_send_emails_with_priorities(mock_send_messages: MagicMock):
+def test_send_emails_with_priorities(mock_send_messages: MagicMock, smtp_backend_settings: None):
 
     high_priority_email = EmailMessage(
         subject="High Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
@@ -167,11 +177,9 @@ def test_send_emails_backend_error(mock_send_messages: MagicMock, mock_get_conne
 @pytest.mark.django_db
 @patch("django.core.mail.backends.base.BaseEmailBackend.send_messages")
 @patch("django.core.mail.backends.console.EmailBackend")
-@override_settings(
-    EMAIL_BACKEND="django_nitro_mailer.backends.DatabaseBackend",
-    NITRO_MAILER_EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend",
-)
-def test_send_mass_email_success(mock_send_mass_mail: MagicMock, mock_get_connection: MagicMock) -> None:
+def test_send_mass_email_success(
+    mock_send_mass_mail: MagicMock, mock_get_connection: MagicMock, database_console_backend_settings: None
+) -> None:
     mock_send_mass_mail.return_value = 3
 
     message1 = ("Subject 1", "Message 1", "from@example.com", ["to1@example.com", "to2@example.com", "to3@example.com"])
@@ -194,11 +202,7 @@ def test_send_mass_email_success(mock_send_mass_mail: MagicMock, mock_get_connec
 
 @pytest.mark.django_db
 @patch("smtplib.SMTP")
-@override_settings(
-    EMAIL_BACKEND="django_nitro_mailer.backends.SyncBackend",
-    NITRO_MAILER_EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
-)
-def test_sync_backend_sends_email(mock_send_messages: MagicMock) -> None:
+def test_sync_backend_sends_email(mock_send_messages: MagicMock, sync_smtp_backend_settings: None) -> None:
     mock_send_messages.return_value.sendmail.return_value = None
 
     send_mail(
@@ -211,15 +215,12 @@ def test_sync_backend_sends_email(mock_send_messages: MagicMock) -> None:
 
     assert EmailLog.objects.count() == 1
     mock_send_messages.assert_called_once()
+    assert Email.objects.count() == 0
 
 
 @pytest.mark.django_db
 @patch("django_nitro_mailer.tasks.logger")
-@override_settings(
-    EMAIL_BACKEND="django_nitro_mailer.backends.SyncBackend",
-    NITRO_MAILER_EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
-)
-def test_sync_backend_sends_email_failure(mock_logger: MagicMock) -> None:
+def test_sync_backend_sends_email_failure(mock_logger: MagicMock, sync_smtp_backend_settings: None) -> None:
 
     send_mail(
         subject="Test Subject",
@@ -232,3 +233,4 @@ def test_sync_backend_sends_email_failure(mock_logger: MagicMock) -> None:
     assert EmailLog.objects.count() == 1
     assert EmailLog.objects.filter(result=EmailLog.Results.FAILURE).count()
     mock_logger.error.assert_called_once()
+    assert Email.objects.count() == 0
