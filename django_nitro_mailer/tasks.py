@@ -59,5 +59,9 @@ def send_emails(queryset: Optional[models.QuerySet] = None) -> None:
 
             except Exception as e:
                 logger.error(
-                    "Failed to send or delete email %s", email_obj.id, extra={"email_id": email_obj.id}, exc_info=True
+                    "Failed to send or delete email %s: %s",
+                    email_obj.id,
+                    str(e),
+                    extra={"email_id": email_obj.id},
+                    exc_info=True,
                 )
