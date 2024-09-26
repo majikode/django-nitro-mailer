@@ -2,6 +2,8 @@ site_name: Django Nitro Mailer Documentation
 theme:
   name: material
 
+docs_dir: pages
+
 nav:
   - About the application: about.md
   - Installation: installation.md
