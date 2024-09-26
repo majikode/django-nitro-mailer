@@ -1,14 +1,15 @@
 import logging
 import os
-from typing import Iterable
+from collections.abc import Iterable
+
+from django.conf import settings
+from django.core.mail import get_connection as django_get_connection
 from django.core.mail.backends.base import BaseEmailBackend
 from django.core.mail.message import EmailMessage
-from django.core.mail import get_connection as django_get_connection
-from django.conf import settings
 
-
-from django_nitro_mailer.models import Email, EmailLog
-from django_nitro_mailer.tasks import throttle_email_delivery, send_email_message
+from django_nitro_mailer.emails import throttle_email_delivery
+from django_nitro_mailer.models import Email
+from django_nitro_mailer.utils import send_email_message
 
 logger = logging.getLogger(__name__)
 email_db_logging = os.getenv("EMAIL_DB_LOGGING_ENABLED", "true").lower() == "true"

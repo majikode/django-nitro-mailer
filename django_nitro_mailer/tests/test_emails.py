@@ -1,10 +1,12 @@
-import pytest
 import pickle
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 from django.conf import Settings
 from django.core.mail import EmailMessage, send_mail, send_mass_mail
-from django_nitro_mailer.backends import BaseEmailBackend
-from django_nitro_mailer.tasks import send_emails
+from django.utils import timezone
+
+from django_nitro_mailer.emails import retry_deferred, send_emails
 from django_nitro_mailer.models import Email, EmailLog
 
 
@@ -36,7 +38,10 @@ def test_set_and_get_email() -> None:
     email_instance = Email.objects.create(email_data=b"")
 
     email_message = EmailMessage(
-        subject="Test Subject", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+        subject="Test Subject",
+        body="Test Body",
+        from_email="from@example.com",
+        to=["to@example.com"],
     )
 
     email_instance.set_email(email_message)
@@ -94,30 +99,54 @@ def test_send_emails_success_smtp(database_smtp_backend_settings: None) -> None:
 def test_send_emails_with_priorities(mock_send_messages: MagicMock, smtp_backend_settings: None):
 
     high_priority_email = EmailMessage(
-        subject="High Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+        subject="High Priority",
+        body="Test Body",
+        from_email="from@example.com",
+        to=["to@example.com"],
     )
     medium_priority_email = EmailMessage(
-        subject="Medium Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+        subject="Medium Priority",
+        body="Test Body",
+        from_email="from@example.com",
+        to=["to@example.com"],
     )
     low_priority_email = EmailMessage(
-        subject="Low Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+        subject="Low Priority",
+        body="Test Body",
+        from_email="from@example.com",
+        to=["to@example.com"],
     )
     medium_priority_email_2 = EmailMessage(
-        subject="Medium Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+        subject="Medium Priority",
+        body="Test Body",
+        from_email="from@example.com",
+        to=["to@example.com"],
     )
     low_priority_email_2 = EmailMessage(
-        subject="Low Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+        subject="Low Priority",
+        body="Test Body",
+        from_email="from@example.com",
+        to=["to@example.com"],
     )
     deferred_priority_email = EmailMessage(
-        subject="Deferred Priority", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+        subject="Deferred Priority",
+        body="Test Body",
+        from_email="from@example.com",
+        to=["to@example.com"],
     )
 
     Email.objects.create(email_data=pickle.dumps(high_priority_email), priority=Email.Priorities.HIGH)
     Email.objects.create(email_data=pickle.dumps(medium_priority_email), priority=Email.Priorities.MEDIUM)
     Email.objects.create(email_data=pickle.dumps(low_priority_email), priority=Email.Priorities.LOW)
-    Email.objects.create(email_data=pickle.dumps(medium_priority_email_2), priority=Email.Priorities.MEDIUM)
+    Email.objects.create(
+        email_data=pickle.dumps(medium_priority_email_2),
+        priority=Email.Priorities.MEDIUM,
+    )
     Email.objects.create(email_data=pickle.dumps(low_priority_email_2), priority=Email.Priorities.LOW)
-    Email.objects.create(email_data=pickle.dumps(deferred_priority_email), priority=Email.Priorities.DEFERRED)
+    Email.objects.create(
+        email_data=pickle.dumps(deferred_priority_email),
+        priority=Email.Priorities.DEFERRED,
+    )
 
     assert Email.objects.count() == 6
     assert EmailLog.objects.count() == 0
@@ -148,7 +177,7 @@ def test_send_emails_no_emails(mock_send_messages: MagicMock) -> None:
 
 
 @pytest.mark.django_db
-@patch("django_nitro_mailer.tasks.get_connection")
+@patch("django_nitro_mailer.emails.get_connection")
 @patch("django.core.mail.backends.smtp.EmailBackend.send_messages")
 def test_send_emails_backend_error(mock_send_messages: MagicMock, mock_get_connection: MagicMock) -> None:
     mock_send_messages.side_effect = Exception("Backend error")
@@ -158,7 +187,10 @@ def test_send_emails_backend_error(mock_send_messages: MagicMock, mock_get_conne
     mock_backend.send_messages = mock_send_messages
 
     email_message = EmailMessage(
-        subject="Test Subject", body="Test Body", from_email="from@example.com", to=["to@example.com"]
+        subject="Test Subject",
+        body="Test Body",
+        from_email="from@example.com",
+        to=["to@example.com"],
     )
     Email.objects.create(email_data=pickle.dumps(email_message), priority=Email.Priorities.HIGH)
 
@@ -178,11 +210,18 @@ def test_send_emails_backend_error(mock_send_messages: MagicMock, mock_get_conne
 @patch("django.core.mail.backends.base.BaseEmailBackend.send_messages")
 @patch("django.core.mail.backends.console.EmailBackend")
 def test_send_mass_email_success(
-    mock_send_mass_mail: MagicMock, mock_get_connection: MagicMock, database_console_backend_settings: None
+    mock_send_mass_mail: MagicMock,
+    mock_get_connection: MagicMock,
+    database_console_backend_settings: None,
 ) -> None:
     mock_send_mass_mail.return_value = 3
 
-    message1 = ("Subject 1", "Message 1", "from@example.com", ["to1@example.com", "to2@example.com", "to3@example.com"])
+    message1 = (
+        "Subject 1",
+        "Message 1",
+        "from@example.com",
+        ["to1@example.com", "to2@example.com", "to3@example.com"],
+    )
     message2 = ("Subject 2", "Message 2", "from@example.com", ["to2@example.com"])
     message3 = ("Subject 3", "Message 3", "from@example.com", ["to3@example.com"])
 
@@ -219,7 +258,7 @@ def test_sync_backend_sends_email(mock_send_messages: MagicMock, sync_smtp_backe
 
 
 @pytest.mark.django_db
-@patch("django_nitro_mailer.tasks.logger")
+@patch("django_nitro_mailer.utils.logger")
 def test_sync_backend_sends_email_failure(mock_logger: MagicMock, sync_smtp_backend_settings: None) -> None:
 
     send_mail(
@@ -234,3 +273,65 @@ def test_sync_backend_sends_email_failure(mock_logger: MagicMock, sync_smtp_back
     assert EmailLog.objects.filter(result=EmailLog.Results.FAILURE).count()
     mock_logger.error.assert_called_once()
     assert Email.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_retry_deferred() -> None:
+    email_message = EmailMessage(
+        subject="Test Subject",
+        body="This is a test email.",
+        from_email="sender@example.com",
+        to=["recipient@example.com"],
+    )
+    email_data = pickle.dumps(email_message)
+    deferred_email = Email.objects.create(email_data=email_data, priority=Email.Priorities.DEFERRED)
+
+    assert Email.objects.filter(id=deferred_email.id).exists()
+
+    retry_deferred()
+
+    assert not Email.objects.filter(id=deferred_email.id).exists()
+
+
+@pytest.mark.django_db
+@patch("django_nitro_mailer.emails.get_connection")
+def test_send_emails_called_with_deferred(mock_get_connection: MagicMock) -> None:
+    email_message = EmailMessage(
+        subject="Test Subject",
+        body="This is a test email.",
+        from_email="sender@example.com",
+        to=["recipient@example.com"],
+    )
+    email_data = pickle.dumps(email_message)
+    deferred_email = Email.objects.create(email_data=email_data, priority=Email.Priorities.DEFERRED)
+    Email.objects.create(email_data=email_data, priority=Email.Priorities.LOW)
+
+    assert Email.objects.filter(id=deferred_email.id).exists()
+
+    retry_deferred()
+
+    mock_get_connection.assert_called_once_with()
+
+    assert not Email.objects.filter(id=deferred_email.id).exists()
+
+    log_entry = EmailLog.objects.filter(email_data=email_data).first()
+    assert log_entry is not None
+    assert log_entry.result == EmailLog.Results.SUCCESS
+    assert log_entry.created_at <= timezone.now()
+
+
+@pytest.mark.django_db
+@patch("django_nitro_mailer.emails.send_emails")
+def test_no_deferred_emails_does_not_call_send_emails(mock_send_emails) -> None:
+    email_message = EmailMessage(
+        subject="Test Subject",
+        body="This is a test email.",
+        from_email="sender@example.com",
+        to=["recipient@example.com"],
+    )
+    email_data = pickle.dumps(email_message)
+    Email.objects.create(email_data=email_data, priority=Email.Priorities.LOW)
+
+    retry_deferred()
+
+    mock_send_emails.assert_not_called()

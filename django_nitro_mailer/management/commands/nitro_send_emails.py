@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
-from django_nitro_mailer.tasks import send_emails
+
+from django_nitro_mailer.utils import send_emails
 
 
 class Command(BaseCommand):

@@ -1,10 +1,10 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.shortcuts import redirect
-from django.contrib import messages
 from django.urls import path
+
+from django_nitro_mailer.emails import send_emails
 from django_nitro_mailer.forms import EmailAdminForm
 from django_nitro_mailer.models import Email
-from django_nitro_mailer.tasks import send_emails
 
 
 @admin.action(description="Send selected emails")
