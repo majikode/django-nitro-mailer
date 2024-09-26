@@ -3,6 +3,7 @@ import pickle
 from unittest.mock import patch, MagicMock
 from django.conf import Settings
 from django.core.mail import EmailMessage, send_mail, send_mass_mail
+from django_nitro_mailer.backends import BaseEmailBackend
 from django_nitro_mailer.tasks import send_emails
 from django_nitro_mailer.models import Email, EmailLog
 
