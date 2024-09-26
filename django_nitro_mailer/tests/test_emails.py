@@ -6,8 +6,8 @@ from django.conf import Settings
 from django.core.mail import EmailMessage, send_mail, send_mass_mail
 from django.utils import timezone
 
+from django_nitro_mailer.emails import retry_deferred, send_emails
 from django_nitro_mailer.models import Email, EmailLog
-from django_nitro_mailer.tasks import retry_deferred, send_emails
 
 
 @pytest.fixture
@@ -177,7 +177,7 @@ def test_send_emails_no_emails(mock_send_messages: MagicMock) -> None:
 
 
 @pytest.mark.django_db
-@patch("django_nitro_mailer.tasks.get_connection")
+@patch("django_nitro_mailer.emails.get_connection")
 @patch("django.core.mail.backends.smtp.EmailBackend.send_messages")
 def test_send_emails_backend_error(mock_send_messages: MagicMock, mock_get_connection: MagicMock) -> None:
     mock_send_messages.side_effect = Exception("Backend error")
@@ -258,7 +258,7 @@ def test_sync_backend_sends_email(mock_send_messages: MagicMock, sync_smtp_backe
 
 
 @pytest.mark.django_db
-@patch("django_nitro_mailer.tasks.logger")
+@patch("django_nitro_mailer.utils.logger")
 def test_sync_backend_sends_email_failure(mock_logger: MagicMock, sync_smtp_backend_settings: None) -> None:
 
     send_mail(
@@ -294,7 +294,7 @@ def test_retry_deferred() -> None:
 
 
 @pytest.mark.django_db
-@patch("django_nitro_mailer.tasks.get_connection")
+@patch("django_nitro_mailer.emails.get_connection")
 def test_send_emails_called_with_deferred(mock_get_connection: MagicMock) -> None:
     email_message = EmailMessage(
         subject="Test Subject",
@@ -321,7 +321,7 @@ def test_send_emails_called_with_deferred(mock_get_connection: MagicMock) -> Non
 
 
 @pytest.mark.django_db
-@patch("django_nitro_mailer.tasks.send_emails")
+@patch("django_nitro_mailer.emails.send_emails")
 def test_no_deferred_emails_does_not_call_send_emails(mock_send_emails) -> None:
     email_message = EmailMessage(
         subject="Test Subject",
