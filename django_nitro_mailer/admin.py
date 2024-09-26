@@ -2,11 +2,19 @@ from django.contrib import admin
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.urls import path
-from django.utils.html import format_html
-from django.urls import reverse
 from django_nitro_mailer.forms import EmailAdminForm
 from django_nitro_mailer.models import Email
 from django_nitro_mailer.tasks import send_emails
+
+
+@admin.action(description="Send selected emails")
+def send_selected_emails(modeladmin, request, queryset):
+    try:
+        count = queryset.count()
+        send_emails(queryset)
+        messages.success(request, "Successfully sent %s email(s)." % count)
+    except Exception as e:
+        messages.error(request, "An error occurred while sending emails: %s" % e)
 
 
 @admin.register(Email)
@@ -15,6 +23,7 @@ class EmailAdmin(admin.ModelAdmin):
 
     form = EmailAdminForm
     list_display = ("subject", "recipients", "created_at", "priority")
+    actions = [send_selected_emails]
 
     def get_urls(self):
         urls = super().get_urls()
