@@ -1,6 +1,5 @@
 import logging
 import os
-import pickle
 import time
 
 from django.core.mail import EmailMultiAlternatives
@@ -9,8 +8,7 @@ from django.core.mail.message import EmailMessage
 from django.utils import timezone
 
 from django_nitro_mailer.models import EmailLog
-
-email_db_logging = os.getenv("EMAIL_DB_LOGGING_ENABLED", "true").lower() == "true"
+from django_nitro_mailer.settings import NITRO_EMAIL_DATABASE_LOGGING
 
 logger = logging.getLogger(__name__)
 
@@ -34,21 +32,24 @@ def create_email_message(
 
 def send_email_message(email_data: EmailMessage, connection: BaseEmailBackend) -> bool:
     try:
-        connection.send_messages([email_data])
+        successful = bool(connection.send_messages([email_data]))
 
-        if email_db_logging:
-            EmailLog.objects.create(email_data=pickle.dumps(email_data), result=EmailLog.Results.SUCCESS)
+        if NITRO_EMAIL_DATABASE_LOGGING:
+            EmailLog.log(email=email_data, result=EmailLog.Results.SUCCESS if successful else EmailLog.Results.FAILURE)
 
         logger.info(
             "Email sent successfully",
             extra={"recipients": email_data.recipients, "created_at": timezone.now()},
         )
-        return True
     except Exception as e:
-        if email_db_logging:
-            EmailLog.objects.create(email_data=pickle.dumps(email_data), result=EmailLog.Results.FAILURE)
-        logger.error("Failed to send email", exc_info=e)
-    return False
+        if NITRO_EMAIL_DATABASE_LOGGING:
+            EmailLog.log(email=email_data, result=EmailLog.Results.FAILURE)
+
+        logger.exception("Failed to send email", exc_info=e)
+        return False
+
+    return successful
+
 
 def throttle_email_delivery() -> None:
     throttle_delay = int(os.getenv("EMAIL_SEND_THROTTLE_MS", "0"))

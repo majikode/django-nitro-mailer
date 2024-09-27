@@ -1,22 +1,21 @@
 import logging
-import os
 from collections.abc import Iterable
+from typing import Self
 
-from django.conf import settings
-from django.core.mail import get_connection as django_get_connection
+from django.core.mail import get_connection
 from django.core.mail.backends.base import BaseEmailBackend
 from django.core.mail.message import EmailMessage
 
-from django_nitro_mailer.emails import throttle_email_delivery
+from django_nitro_mailer.emails import SendEmailsResult, throttle_email_delivery
 from django_nitro_mailer.models import Email
+from django_nitro_mailer.settings import NITRO_EMAIL_BACKEND
 from django_nitro_mailer.utils import send_email_message
 
 logger = logging.getLogger(__name__)
-email_db_logging = os.getenv("EMAIL_DB_LOGGING_ENABLED", "true").lower() == "true"
 
 
 class DatabaseBackend(BaseEmailBackend):
-    def send_messages(self, email_messages: Iterable[EmailMessage]) -> int:
+    def send_messages(self: Self, email_messages: Iterable[EmailMessage]) -> int:
         email_list = []
         for email_obj in email_messages:
             email = Email()
@@ -28,16 +27,16 @@ class DatabaseBackend(BaseEmailBackend):
 
 
 class SyncBackend(BaseEmailBackend):
-    def get_connection(self, fail_silently: bool = False) -> int:
-        backend_path = settings.NITRO_MAILER_EMAIL_BACKEND
-        return django_get_connection(backend_path, fail_silently=fail_silently)
-
-    def send_messages(self, email_messages: Iterable[EmailMessage]) -> int:
-        successful_sends = 0
-        connection = self.get_connection()
+    def send_messages(self: Self, email_messages: Iterable[EmailMessage]) -> int:
+        connection = get_connection(NITRO_EMAIL_BACKEND)
+        
+        result = SendEmailsResult(success_count=0, failure_count=0)
         for email_message in email_messages:
             if send_email_message(email_message, connection):
-                successful_sends += 1
+                result.success_count += 1
+            else:
+                result.failure_count += 1
+                
             throttle_email_delivery()
 
-        return successful_sends
+        return result.success_count

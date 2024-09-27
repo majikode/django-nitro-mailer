@@ -72,3 +72,7 @@ class EmailLog(EmailDataMixin, models.Model):
 
     def __str__(self: Self) -> str:
         return f"{self.result}: {self.subject} [{self.created_at}]"
+    
+    @classmethod
+    def log(cls: type[Self], email: EmailMessage, result: Results) -> None:
+        cls.objects.create(email_data=pickle.dumps(email), result=result)

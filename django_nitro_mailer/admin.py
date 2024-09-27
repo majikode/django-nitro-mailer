@@ -1,6 +1,10 @@
+from typing import Self
+
 from django.contrib import admin, messages
+from django.db.models.query import QuerySet
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
-from django.urls import path
+from django.urls import URLPattern, path
 
 from django_nitro_mailer.emails import send_emails
 from django_nitro_mailer.forms import EmailAdminForm
@@ -8,13 +12,14 @@ from django_nitro_mailer.models import Email
 
 
 @admin.action(description="Send selected emails")
-def send_selected_emails(modeladmin, request, queryset):
-    try:
-        count = queryset.count()
-        send_emails(queryset)
-        messages.success(request, "Successfully sent %s email(s)." % count)
-    except Exception as e:
-        messages.error(request, "An error occurred while sending emails: %s" % e)
+def send_selected_emails(modeladmin: admin.ModelAdmin, request: HttpRequest, queryset: QuerySet) -> None:
+    result = send_emails(queryset)
+    msg = f"Successfully sent {result.success_count} email(s)."
+    if result.failure_count > 0:
+        msg += f" Failed to send {result.failure_count} email(s)."
+        messages.warning(request, msg)
+    else:
+        messages.success(request, msg)
 
 
 @admin.register(Email)
@@ -23,9 +28,9 @@ class EmailAdmin(admin.ModelAdmin):
 
     form = EmailAdminForm
     list_display = ("subject", "recipients", "created_at", "priority")
-    actions = [send_selected_emails]
+    actions = (send_selected_emails,)
 
-    def get_urls(self):
+    def get_urls(self: Self) -> list[URLPattern]:
         urls = super().get_urls()
         custom_urls = [
             path(
@@ -36,11 +41,14 @@ class EmailAdmin(admin.ModelAdmin):
         ]
         return custom_urls + urls
 
-    def send_email(self, request, email_id):
-        try:
-            email = Email.objects.filter(id=email_id)
-            send_emails(queryset=email)
-            messages.success(request, "Email has been sent.")
-        except Exception as e:
-            messages.error(request, f"Error while sending email: {e}")
-        return redirect(request.META.get("HTTP_REFERER", "admin:index"))
+    def send_email(self: Self, request: HttpRequest, email_id: int) -> HttpResponse:
+        email = Email.objects.filter(id=email_id)
+        result = send_emails(queryset=email)
+        if result.success_count > 0:
+            messages.success(request, "Email sent successfully.")
+        else:
+            messages.error(request, "Failed to send email.")
+        
+        app_label = self.opts.app_label
+        model_name = self.opts.model_name
+        return redirect(f"admin:{app_label}_{model_name}_changelist")

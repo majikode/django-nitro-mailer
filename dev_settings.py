@@ -1,5 +1,5 @@
 DEBUG = True
-SECRET_KEY = "open-secret"
+SECRET_KEY = "open-secret" # noqa: S105
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -7,7 +7,8 @@ DATABASES = {
         "TEST": {"NAME": ":memory:"},
     }
 }
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = "django_nitro_mailer.backends.DatabaseBackend"
+NITRO_EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -40,3 +41,4 @@ TEMPLATES = [
     },
 ]
 STATIC_URL = "/static/"
+USE_TZ = True
