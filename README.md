@@ -1,11 +1,65 @@
-# django-nitro-mailer
-
 <p align="center">
-    <img src="docs/logo.png" width="200">
+    <img src="https://raw.githubusercontent.com/majikode/django-nitro-mailer/refs/heads/main/docs/logo.png" width="200">
     <p align="center">📨 Django mails. Supercharged.</p>
+    <img src="https://github.com/majikode/django-nitro-mailer/actions/workflows/tests.yml/badge.svg"> 
 </p>
 
 ## Overview
+
+`django-nitro-mailer` is a pluggable Django app that provides extra email reliability and observability in form of email backends that can be used with Django's built-in functions and other email backend.
+
+`django-nitro-mailer` by itself does not provide a way to send emails, but it puts an extra layer before the email backend to provide extra features like:
+
+* priority queueing
+* retrying failed emails
+* logging and traces
+* email throttling
+* sending messages through the admin panel
+
+## Requirements
+
+* Python >= 3.11
+* Django >= 4.2
+
+## Installation
+
+Install the package using pip:
+
+```bash
+$ pip install django-nitro-mailer
+```
+
+## Usage
+
+1. Add `django_nitro_mailer` to your `INSTALLED_APPS` in your `settings.py`:
+
+```python
+INSTALLED_APPS = [
+    ...
+    "django_nitro_mailer",
+    ...
+]
+```
+
+2. Run `python manage.py migrate` to create the necessary tables.
+
+3. Change the `EMAIL_BACKEND` setting in your `settings.py` to use the desired backend:
+
+* **Database Backend**: Store emails in the database and send them asynchronously. Requires sending a cron job or some other scheduled task to send the emails.
+
+```python
+EMAIL_BACKEND = "django_nitro_mailer.backends.DatabaseBackend"
+```
+
+* **Sync Backend**: Send emails synchronously. Does not provide the reliability that the database backend provides, but still provides the logging and throttling features.
+
+```python
+EMAIL_BACKEND = "django_nitro_mailer.backends.SyncBackend"
+```
+
+## Documentation
+
+
 
 ## License
 
