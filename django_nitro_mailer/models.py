@@ -4,6 +4,7 @@ from typing import ClassVar, Self
 from django.core.mail import EmailMessage
 from django.db import models
 from django.utils.functional import cached_property
+from django.utils.html import escape
 from django.utils.translation import gettext_lazy as _
 
 
@@ -20,6 +21,20 @@ class EmailDataMixin(models.Model):
     def email(self: Self) -> EmailMessage | None:
         if self.email_data is not None:
             return pickle.loads(self.email_data)  # noqa: S301
+        else:
+            return None
+
+    @cached_property
+    def text_content(self: Self) -> str | None:
+        if self.email is not None:
+            return self.email.body
+        else:
+            return None
+
+    @cached_property
+    def html_content(self: Self) -> str | None:
+        if self.email is not None:
+            return escape(self.email.alternatives[0][0]) if getattr(self.email, "alternatives", None) else ""
         else:
             return None
 
