@@ -2,22 +2,11 @@ import pickle
 from unittest.mock import MagicMock, patch
 
 import pytest
-from django.conf import Settings
 from django.core.mail import EmailMessage, send_mail, send_mass_mail
 from django.utils import timezone
 
 from django_nitro_mailer.emails import retry_deferred, send_emails
 from django_nitro_mailer.models import Email, EmailLog
-
-
-@pytest.fixture
-def nitro_sync_backend_settings(settings: Settings) -> None:
-    settings.EMAIL_BACKEND = "django_nitro_mailer.backends.SyncBackend"
-
-
-@pytest.fixture
-def nitro_database_backend_settings(settings: Settings) -> None:
-    settings.EMAIL_BACKEND = "django_nitro_mailer.backends.DatabaseBackend"
 
 
 @pytest.mark.django_db
