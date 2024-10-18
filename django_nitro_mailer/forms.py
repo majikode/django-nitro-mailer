@@ -5,6 +5,7 @@ from django.template import Context, Template
 from django.utils.translation import gettext_lazy
 
 from django_nitro_mailer.array_field import SimpleArrayField
+from django_nitro_mailer.models import Email
 from django_nitro_mailer.utils import create_email_message
 
 
@@ -14,17 +15,26 @@ class EmailAdminForm(forms.ModelForm):
     text_content = forms.CharField(widget=forms.Textarea, required=False)
     html_content = forms.CharField(label=gettext_lazy("HTML content"), widget=forms.Textarea, required=False)
     context = forms.JSONField(
-        required=False, initial={}, help_text=gettext_lazy("JSON context for rendering the email content.")
+        required=False,
+        initial={},
+        help_text=gettext_lazy(
+            "JSON context for rendering the email content. "
+            "Use double brackets '{{ variable }}' for variable substitution."
+        ),
     )
+
+    class Meta:
+        model = Email
+        fields = ("recipients", "subject", "text_content", "html_content", "context")
 
     def __init__(self: Self, *args: Any, **kwargs: Any) -> None:
         if instance := kwargs.get("instance"):
-            email = instance.email
+            instance: Email
             kwargs["initial"] = {
-                "recipients": ",".join(email.to),
-                "subject": email.subject,
-                "text_content": email.body,
-                "html_content": email.alternatives[0][0] if email.alternatives else "",
+                "recipients": instance.recipients,
+                "subject": instance.subject,
+                "text_content": instance.text_content,
+                "html_content": instance.html_content,
             }
         super().__init__(*args, **kwargs)
 

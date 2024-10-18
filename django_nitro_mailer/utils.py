@@ -2,13 +2,14 @@ import logging
 import os
 import time
 
+from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.core.mail.backends.base import BaseEmailBackend
 from django.core.mail.message import EmailMessage
 from django.utils import timezone
 
+from django_nitro_mailer import defaults as nitro_defaults
 from django_nitro_mailer.models import EmailLog
-from django_nitro_mailer.settings import NITRO_EMAIL_DATABASE_LOGGING
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +32,14 @@ def create_email_message(
 
 
 def send_email_message(email_data: EmailMessage, connection: BaseEmailBackend) -> bool:
+    nitro_email_database_logging = getattr(
+        settings, "NITRO_EMAIL_DATABASE_LOGGING", nitro_defaults.NITRO_EMAIL_DATABASE_LOGGING
+    )
+
     try:
         successful = bool(connection.send_messages([email_data]))
 
-        if NITRO_EMAIL_DATABASE_LOGGING:
+        if nitro_email_database_logging:
             EmailLog.log(email=email_data, result=EmailLog.Results.SUCCESS if successful else EmailLog.Results.FAILURE)
 
         logger.info(
@@ -42,8 +47,8 @@ def send_email_message(email_data: EmailMessage, connection: BaseEmailBackend) -
             extra={"recipients": email_data.recipients, "created_at": timezone.now()},
         )
     except Exception as e:
-        if NITRO_EMAIL_DATABASE_LOGGING:
-            EmailLog.log(email=email_data, result=EmailLog.Results.FAILURE)
+        if nitro_email_database_logging:
+            EmailLog.log(email=email_data, result=EmailLog.Results.FAILURE, extra={"exc_info": str(e)})
 
         logger.exception("Failed to send email", exc_info=e)
         return False

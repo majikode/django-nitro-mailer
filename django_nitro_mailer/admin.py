@@ -8,7 +8,7 @@ from django.urls import URLPattern, path
 
 from django_nitro_mailer.emails import send_emails
 from django_nitro_mailer.forms import EmailAdminForm
-from django_nitro_mailer.models import Email
+from django_nitro_mailer.models import Email, EmailLog
 
 
 @admin.action(description="Send selected emails")
@@ -52,3 +52,24 @@ class EmailAdmin(admin.ModelAdmin):
         app_label = self.opts.app_label
         model_name = self.opts.model_name
         return redirect(f"admin:{app_label}_{model_name}_changelist")
+
+
+@admin.register(EmailLog)
+class EmailLogAdmin(admin.ModelAdmin):
+    list_display = ("subject", "recipients", "result", "created_at")
+    fieldsets = (
+        (
+            None,
+            {"fields": ["result", "extra", "created_at"]},
+        ),
+        (
+            "Email data",
+            {"fields": ["subject", "recipients", "text_content", "html_content"]},
+        ),
+    )
+
+    def has_add_permission(self: Self, request: HttpRequest) -> bool:
+        return False
+
+    def has_change_permission(self: Self, request: HttpRequest, obj: EmailLog | None = None) -> bool:
+        return False
