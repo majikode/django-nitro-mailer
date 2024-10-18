@@ -1,6 +1,8 @@
 <p align="center">
     <img src="https://raw.githubusercontent.com/majikode/django-nitro-mailer/refs/heads/main/docs/logo.png" width="200">
     <p align="center">📨 Django mails. Supercharged.</p>
+</p>
+<p align="center">
     <img src="https://github.com/majikode/django-nitro-mailer/actions/workflows/tests.yml/badge.svg"> 
 </p>
 

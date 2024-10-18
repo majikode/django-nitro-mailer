@@ -5,7 +5,7 @@ theme:
 docs_dir: pages
 
 nav:
-  - About the application: about.md
-  - Installation: installation.md
-  - Sending emails: sending_emails.md
-  - Environment variables: environment_variables.md
+  - Introduction: index.md
+  - Quickstart: quickstart.md
+  - Sending emails: sending-emails.md
+  - Settings: settings.md
