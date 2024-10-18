@@ -18,7 +18,7 @@ class EmailAdminForm(forms.ModelForm):
     )
 
     def __init__(self: Self, *args: Any, **kwargs: Any) -> None:
-        if instance := kwargs.get("instance", None):
+        if instance := kwargs.get("instance"):
             email = instance.email
             kwargs["initial"] = {
                 "recipients": ",".join(email.to),

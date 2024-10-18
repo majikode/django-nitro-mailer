@@ -29,14 +29,14 @@ class DatabaseBackend(BaseEmailBackend):
 class SyncBackend(BaseEmailBackend):
     def send_messages(self: Self, email_messages: Iterable[EmailMessage]) -> int:
         connection = get_connection(NITRO_EMAIL_BACKEND)
-        
+
         result = SendEmailsResult(success_count=0, failure_count=0)
         for email_message in email_messages:
             if send_email_message(email_message, connection):
                 result.success_count += 1
             else:
                 result.failure_count += 1
-                
+
             throttle_email_delivery()
 
         return result.success_count

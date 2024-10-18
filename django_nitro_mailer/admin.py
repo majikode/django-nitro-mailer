@@ -48,7 +48,7 @@ class EmailAdmin(admin.ModelAdmin):
             messages.success(request, "Email sent successfully.")
         else:
             messages.error(request, "Failed to send email.")
-        
+
         app_label = self.opts.app_label
         model_name = self.opts.model_name
         return redirect(f"admin:{app_label}_{model_name}_changelist")

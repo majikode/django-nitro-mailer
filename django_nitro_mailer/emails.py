@@ -17,6 +17,7 @@ class SendEmailsResult:
     success_count: int
     failure_count: int
 
+
 def send_emails(queryset: QuerySet | None = None) -> SendEmailsResult:
     if queryset is None:
         queryset = Email.objects.exclude(priority=Email.Priorities.DEFERRED).order_by("-priority", "created_at")

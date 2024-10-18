@@ -1,5 +1,5 @@
 DEBUG = True
-SECRET_KEY = "open-secret" # noqa: S105
+SECRET_KEY = "open-secret"  # noqa: S105
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",

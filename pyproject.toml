@@ -12,15 +12,15 @@ django = "^4.2"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "dev_settings"
-python_files = ["tests.py", "test_*.py","*_tests.py"]
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.4.4"
-black = "^24.4.2"
-pytest = "^8.2.0"
-pytest-django = "^4.8.0"
-mkdocs-material = "^9.5.37"
+ruff = "^0.7.0"
+pytest = "^8.3.3"
+pytest-django = "^4.9.0"
+mkdocs-material = "^9.5.41"
 mkdocs = "^1.6.1"
+djlint = "^1.35.2"
 
 [tool.black]
 line-length = 120
@@ -28,30 +28,32 @@ target-version = ["py311"]
 
 [tool.ruff]
 select = [
-    "E", 
-    "F", 
-    "C90", 
-    "N", 
+    "F",
+    "E",
+    "W",
+    "C90",
     "I",
+    "N",
+    "UP",
     "ICN",
-    "UP", 
-    "ANN", 
-    "YTT", 
-    "ASYNC", 
-    "B", 
-    "S", 
-    "A", 
-    "C4", 
-    "DJ", 
-    "DTZ", 
-    "G", 
-    "PIE", 
-    "T20", 
-    "RSE", 
-    "SIM", 
-    "PTH", 
-    "PD", 
-    "TRY", 
+    "ANN",
+    "YTT",
+    "ASYNC",
+    "S",
+    "B",
+    "A",
+    "C4",
+    "DTZ",
+    "DJ",
+    "EM",
+    "G",
+    "PIE",
+    "T20",
+    "RSE",
+    "SIM",
+    "PTH",
+    "PD",
+    "TRY",
     "RUF",
     "PIE",
     "INT",
@@ -65,6 +67,7 @@ target-version = "py311"
 
 [tool.ruff.lint.per-file-ignores]
 "test_*.py" = ["S101"]
+"**/migrations/0*.py" = ["RUF012"]
 
 [build-system]
 requires = ["poetry-core"]
