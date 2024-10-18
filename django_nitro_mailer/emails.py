@@ -1,12 +1,13 @@
 import logging
 from dataclasses import dataclass
 
+from django.conf import settings
 from django.core.mail import get_connection
 from django.db import transaction
 from django.db.models.query import QuerySet
 
+from django_nitro_mailer import defaults as nitro_defaults
 from django_nitro_mailer.models import Email
-from django_nitro_mailer.settings import NITRO_EMAIL_BACKEND
 from django_nitro_mailer.utils import send_email_message, throttle_email_delivery
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,8 @@ def send_emails(queryset: QuerySet | None = None) -> SendEmailsResult:
 
     result = SendEmailsResult(success_count=0, failure_count=0)
 
-    connection = get_connection(NITRO_EMAIL_BACKEND)
+    nitro_email_backend = getattr(settings, "NITRO_EMAIL_BACKEND", nitro_defaults.NITRO_EMAIL_BACKEND)
+    connection = get_connection(nitro_email_backend)
     with transaction.atomic():
         for email_obj in queryset.select_for_update(nowait=True):
             email_message = email_obj.email

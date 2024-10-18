@@ -28,8 +28,7 @@ def test_set_and_get_email() -> None:
 
 
 @pytest.mark.django_db
-@patch("django.core.mail.backends.smtp.EmailBackend.send_messages")
-def test_send_emails_with_priorities(mock_send_messages: MagicMock, nitro_database_backend_settings: None) -> None:
+def test_send_emails_with_priorities() -> None:
     high_priority_email = EmailMessage(
         subject="High Priority",
         body="Test Body",
@@ -95,7 +94,7 @@ def test_send_emails_with_priorities(mock_send_messages: MagicMock, nitro_databa
 
 
 @pytest.mark.django_db
-@patch("django.core.mail.backends.smtp.EmailBackend.send_messages")
+@patch("django.core.mail.backends.locmem.EmailBackend.send_messages")
 def test_send_emails_no_emails(mock_send_messages: MagicMock) -> None:
     mock_send_messages.return_value = 1
 
@@ -110,7 +109,7 @@ def test_send_emails_no_emails(mock_send_messages: MagicMock) -> None:
 
 @pytest.mark.django_db
 @patch("django_nitro_mailer.emails.get_connection")
-@patch("django.core.mail.backends.smtp.EmailBackend.send_messages")
+@patch("django.core.mail.backends.locmem.EmailBackend.send_messages")
 def test_send_emails_backend_error(mock_send_messages: MagicMock, mock_get_connection: MagicMock) -> None:
     mock_send_messages.side_effect = Exception("Backend error")
 
@@ -160,7 +159,7 @@ def test_send_mass_email_success(nitro_database_backend_settings: None) -> None:
 
 
 @pytest.mark.django_db
-@patch("django.core.mail.backends.console.EmailBackend.send_messages")
+@patch("django.core.mail.backends.locmem.EmailBackend.send_messages")
 def test_sync_backend_sends_email(mock_send_messages: MagicMock, nitro_sync_backend_settings: None) -> None:
     send_mail(
         subject="Test Subject",
@@ -176,7 +175,7 @@ def test_sync_backend_sends_email(mock_send_messages: MagicMock, nitro_sync_back
 
 
 @pytest.mark.django_db
-@patch("django.core.mail.backends.console.EmailBackend.send_messages", return_value=0)
+@patch("django.core.mail.backends.locmem.EmailBackend.send_messages", return_value=0)
 def test_sync_backend_sends_email_failure(mock_send_messages: MagicMock, nitro_sync_backend_settings: None) -> None:
     send_mail(
         subject="Test Subject",
