@@ -24,7 +24,7 @@ class EmailAdminForm(forms.ModelForm):
                 "recipients": ",".join(email.to),
                 "subject": email.subject,
                 "text_content": email.body,
-                "html_content": email.alternatives[0][0] if email.alternatives else "",
+                "html_content": email.alternatives[0][0] if getattr(email, "alternatives", None) else "",
             }
         super().__init__(*args, **kwargs)
 
