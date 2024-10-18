@@ -1,5 +1,5 @@
 import pickle
-from typing import Self
+from typing import ClassVar, Self
 
 from django.core.mail import EmailMessage
 from django.db import models
@@ -70,9 +70,21 @@ class EmailLog(EmailDataMixin, models.Model):
     result = models.PositiveSmallIntegerField(choices=Results.choices)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    extra = models.JSONField(default=dict)
+
+    class Meta:
+        ordering: ClassVar[list[str]] = ["-created_at"]
+
     def __str__(self: Self) -> str:
         return f"{self.result}: {self.subject} [{self.created_at}]"
 
     @classmethod
-    def log(cls: type[Self], email: EmailMessage, result: Results) -> None:
-        cls.objects.create(email_data=pickle.dumps(email), result=result)
+    def log(cls: type[Self], email: EmailMessage, result: Results, extra: dict | None = None) -> None:
+        create_kwargs = {
+            "email_data": pickle.dumps(email),
+            "result": result,
+        }
+        if extra:
+            create_kwargs["extra"] = extra
+
+        cls.objects.create(**create_kwargs)

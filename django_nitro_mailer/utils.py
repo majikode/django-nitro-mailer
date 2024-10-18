@@ -48,7 +48,7 @@ def send_email_message(email_data: EmailMessage, connection: BaseEmailBackend) -
         )
     except Exception as e:
         if nitro_email_database_logging:
-            EmailLog.log(email=email_data, result=EmailLog.Results.FAILURE)
+            EmailLog.log(email=email_data, result=EmailLog.Results.FAILURE, extra={"exc_info": str(e)})
 
         logger.exception("Failed to send email", exc_info=e)
         return False
