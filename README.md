@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/majikode/django-nitro-mailer/refs/heads/main/docs/logo.png" width="200">
+    <img src="https://raw.githubusercontent.com/majikode/django-nitro-mailer/refs/heads/main/docs/assets/django-nitro-mailer-logo.png" width="200">
     <p align="center">📨 Django mails. Supercharged.</p>
 </p>
 <p align="center">
@@ -61,7 +61,7 @@ EMAIL_BACKEND = "django_nitro_mailer.backends.SyncBackend"
 
 ## Documentation
 
-
+Documentation is available [here](https://majikode.github.io/django-nitro-mailer/).
 
 ## License
 
