@@ -1,0 +1,16 @@
+site_name: Django Nitro Mailer
+site_description: >
+  Pluggable Django app that provides extra email reliability and observability
+  in form of email backends that can be used with Django's built-in functions and other email backend.
+
+repo_url: https://github.com/majikode/django-nitro-mailer/
+
+theme:
+  name: material
+  logo: assets/django-nitro-mailer-logo.png
+
+nav:
+  - Introduction: index.md
+  - Quickstart: quickstart.md
+  - Sending emails: sending-emails.md
+  - Settings: settings.md
