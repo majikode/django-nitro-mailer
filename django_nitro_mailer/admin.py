@@ -24,7 +24,7 @@ def send_selected_emails(modeladmin: admin.ModelAdmin, request: HttpRequest, que
 
 @admin.register(Email)
 class EmailAdmin(admin.ModelAdmin):
-    change_form_template = "admin/email_change_form.html"
+    change_form_template = "django_nitro_mailer/admin/email_change_form.html"
 
     form = EmailAdminForm
     list_display = ("subject", "recipients", "created_at", "priority")
