@@ -10,11 +10,16 @@ from django_nitro_mailer.utils import create_email_message
 
 
 class EmailAdminForm(forms.ModelForm):
-    recipients = SimpleArrayField(forms.EmailField(), widget=forms.TextInput(attrs={"class": "vTextField"}))
-    subject = forms.CharField(widget=forms.TextInput(attrs={"class": "vTextField"}))
-    text_content = forms.CharField(widget=forms.Textarea, required=False)
+    recipients = SimpleArrayField(
+        label=gettext_lazy("Recipients"),
+        base_field=forms.EmailField(),
+        widget=forms.TextInput(attrs={"class": "vTextField"}),
+    )
+    subject = forms.CharField(label=gettext_lazy("Subject"), widget=forms.TextInput(attrs={"class": "vTextField"}))
+    text_content = forms.CharField(label=gettext_lazy("Text content"), widget=forms.Textarea, required=False)
     html_content = forms.CharField(label=gettext_lazy("HTML content"), widget=forms.Textarea, required=False)
     context = forms.JSONField(
+        label=gettext_lazy("Context"),
         required=False,
         initial={},
         help_text=gettext_lazy(

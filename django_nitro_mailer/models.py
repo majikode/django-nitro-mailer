@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 class EmailDataMixin(models.Model):
-    email_data = models.BinaryField()
+    email_data = models.BinaryField(verbose_name=_("email data"))
 
     class Meta:
         abstract = True
@@ -64,14 +64,19 @@ class Email(EmailDataMixin, models.Model):
 
     DEFAULT_PRIORITY = Priorities.MEDIUM
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("created at"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("updated at"))
 
     priority = models.PositiveSmallIntegerField(
         choices=Priorities.choices,
         default=DEFAULT_PRIORITY,
+        verbose_name=_("priority"),
         help_text=_("Determines the order in which emails are sent."),
     )
+
+    class Meta:
+        verbose_name = _("email")
+        verbose_name_plural = _("emails")
 
     def __str__(self: Self) -> str:
         return f"{self.subject} [{self.created_at}]"
@@ -82,12 +87,15 @@ class EmailLog(EmailDataMixin, models.Model):
         SUCCESS = 0, _("Success")
         FAILURE = 1, _("Failure")
 
-    result = models.PositiveSmallIntegerField(choices=Results.choices)
-    created_at = models.DateTimeField(auto_now_add=True)
+    result = models.PositiveSmallIntegerField(choices=Results.choices, verbose_name=_("result"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("created at"))
 
-    extra = models.JSONField(default=dict)
+    extra = models.JSONField(default=dict, verbose_name=_("extra"))
 
     class Meta:
+        verbose_name = _("email log")
+        verbose_name_plural = _("email logs")
+
         ordering: ClassVar[list[str]] = ["-created_at"]
 
     def __str__(self: Self) -> str:

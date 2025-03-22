@@ -1,6 +1,6 @@
 [project]
 name = "django-nitro-mailer"
-version = "0.1.2"
+version = "0.1.3"
 description = "Django mails. Supercharged."
 authors = [{ name = "Kamil Marut", email = "kamil@kamilmarut.com" }]
 requires-python = ">=3.11,<3.14"

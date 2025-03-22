@@ -23,6 +23,11 @@ jobs:
             - name: Install dependencies
               run: uv sync
 
+            - name: Compile *.mo files
+              run: | 
+                sudo apt install gettext
+                uv run python manage.py compilemessages
+
             - name: Build package
               run: uv build
 

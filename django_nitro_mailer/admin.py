@@ -5,18 +5,21 @@ from django.db.models.query import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.urls import URLPattern, path
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 
 from django_nitro_mailer.emails import send_emails
 from django_nitro_mailer.forms import EmailAdminForm
 from django_nitro_mailer.models import Email, EmailLog
 
 
-@admin.action(description="Send selected emails")
+@admin.action(description=_("Send selected emails"))
 def send_selected_emails(modeladmin: admin.ModelAdmin, request: HttpRequest, queryset: QuerySet) -> None:
     result = send_emails(queryset)
-    msg = f"Successfully sent {result.success_count} email(s)."
+    msg = gettext("Successfully sent %(success_count)d email(s).") % {"success_count": result.success_count}
     if result.failure_count > 0:
-        msg += f" Failed to send {result.failure_count} email(s)."
+        msg += " "
+        msg += gettext("Failed to send %(failure_count)d email(s).") % {"failure_count": result.failure_count}
         messages.warning(request, msg)
     else:
         messages.success(request, msg)
@@ -45,9 +48,9 @@ class EmailAdmin(admin.ModelAdmin):
         email = Email.objects.filter(id=email_id)
         result = send_emails(queryset=email)
         if result.success_count > 0:
-            messages.success(request, "Email sent successfully.")
+            messages.success(request, gettext("Email sent successfully."))
         else:
-            messages.error(request, "Failed to send email.")
+            messages.error(request, gettext("Failed to send email."))
 
         app_label = self.opts.app_label
         model_name = self.opts.model_name
@@ -63,10 +66,26 @@ class EmailLogAdmin(admin.ModelAdmin):
             {"fields": ["result", "extra", "created_at"]},
         ),
         (
-            "Email data",
+            _("Email data"),
             {"fields": ["subject", "recipients", "text_content", "html_content"]},
         ),
     )
+
+    @admin.display(description=_("Subject"))
+    def subject(self: Self, obj: EmailLog) -> str:
+        return obj.subject
+
+    @admin.display(description=_("Recipients"))
+    def recipients(self: Self, obj: EmailLog) -> str:
+        return ", ".join(obj.recipients)
+
+    @admin.display(description=_("Text content"))
+    def text_content(self: Self, obj: EmailLog) -> str:
+        return obj.text_content
+
+    @admin.display(description=_("HTML content"))
+    def html_content(self: Self, obj: EmailLog) -> str:
+        return obj.html_content
 
     def has_add_permission(self: Self, request: HttpRequest) -> bool:
         return False
