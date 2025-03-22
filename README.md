@@ -3,7 +3,8 @@
     <p align="center">📨 Django mails. Supercharged.</p>
 </p>
 <p align="center">
-    <img src="https://github.com/majikode/django-nitro-mailer/actions/workflows/tests.yml/badge.svg"> 
+    <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/django-nitro-mailer">
+    <img alt="Test Status" src="https://github.com/majikode/django-nitro-mailer/actions/workflows/tests.yml/badge.svg"> 
 </p>
 
 ## Overview
