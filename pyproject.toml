@@ -6,7 +6,7 @@ authors = [{ name = "Kamil Marut", email = "kamil@kamilmarut.com" }]
 requires-python = ">=3.11,<3.14"
 readme = "README.md"
 license = "MIT"
-dependencies = ["django>=4.2,<5.2"]
+dependencies = ["django>=4.2,<6.0"]
 
 [dependency-groups]
 dev = [
