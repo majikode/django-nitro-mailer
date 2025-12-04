@@ -1,12 +1,12 @@
 [project]
 name = "django-nitro-mailer"
-version = "0.1.4"
+version = "0.2.0"
 description = "Django mails. Supercharged."
 authors = [{ name = "Kamil Marut", email = "kamil@kamilmarut.com" }]
 requires-python = ">=3.11,<3.14"
 readme = "README.md"
 license = "MIT"
-dependencies = ["django>=4.2,<6.0"]
+dependencies = ["django>=5.2,<6.1"]
 
 [dependency-groups]
 dev = [
