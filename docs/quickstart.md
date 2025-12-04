@@ -6,8 +6,8 @@ This document will guide you through the installation process and initial setup 
 
 Before you begin, make sure your environment meets the following requirements:
 
-- **Python 3.11+**
-- **Django 4.2+**
+- **Python 3.12+**
+- **Django 5.2+**
 
 ## Installing the Package
 
