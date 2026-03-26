@@ -12,10 +12,9 @@ dependencies = ["django>=5.2,<6.1"]
 dev = [
     "pytest>=8.3.3,<9",
     "pytest-django>=4.9.0,<5",
-    "mkdocs-material>=9.5.41,<10",
-    "mkdocs>=1.6.1,<2",
     "djlint>=1.35.2,<2",
     "ruff>=0.11.2",
+    "zensical>=0.0.29",
 ]
 
 [tool.pytest.ini_options]

@@ -1,0 +1,24 @@
+[project]
+site_name = "Django Nitro Mailer"
+site_description = "Pluggable Django app that provides extra email reliability and observability in form of email backends that can be used with Django's built-in functions and other email backend."
+repo_url = "https://github.com/majikode/django-nitro-mailer/"
+
+nav = [
+    { "Introduction" = "index.md" },
+    { "Quickstart" = "quickstart.md" },
+    { "Sending emails" = "sending-emails.md" },
+    { "Settings" = "settings.md" }
+]
+
+[project.theme]
+logo = "assets/django-nitro-mailer-logo.png"
+
+[[project.theme.palette]]
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
